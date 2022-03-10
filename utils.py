@@ -2,6 +2,8 @@ import requests
 import zipfile
 import shutil
 import os
+import re
+import json
 from requests.exceptions import HTTPError
 
 
@@ -35,12 +37,23 @@ def download_file_to_dir(url: str, dir: str, check_url: bool = True):
         raise HTTPError('404: ' + url)
 
 
-def unzip_to_dir(file: str, dir: str, remove_file=True):
+def unzip_file_to_dir(file: str, dir: str, remove_file=True):
     if os.path.exists(file):
-        with zipfile.ZipFile(file, "r") as zip_ref:
-            zip_ref.extractall(dir)
+        try:
+            with zipfile.ZipFile(file, "r") as zip_ref:
+                zip_ref.extractall(dir)
+        except:
+            raise Exception(
+                'Please check that the file is complete and that the folder has read/write permissions.')
         if remove_file is True:
             os.remove(file)
-        return list_dir(dir)
+        return True
     else:
         raise FileNotFoundError(file)
+
+
+def loads_jsonp(_jsonp):
+    try:
+        return json.loads(re.match(".*?({.*}).*", _jsonp, re.S).group(1))
+    except:
+        pass
